@@ -1,8 +1,3 @@
-CREATE POLICY "Enable full access for admin" ON "public"."stickers"
-AS PERMISSIVE FOR ALL
-TO public
-USING (auth.email() = 'ifab92@hotmail.com')
-WITH CHECK (auth.email() = 'ifab92@hotmail.com');
 
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { dbService } from '../services/dbService';
