@@ -148,7 +148,7 @@ export const HomePage: React.FC<Props> = ({ onBuyClick }) => {
       <div className="flex gap-2 items-start p-3 bg-navy-900/50 rounded-xl border border-white/5">
         <Info size={16} className="text-slate-500 shrink-0 mt-0.5" />
         <p className="text-[10px] text-slate-500 leading-relaxed text-justify">
-          GanarApp - Un solo ticket te da acceso a todo: Premio Diario, Gran Acumulado, Sorteo Garantizado y Recompensa al Líder del Ranking. ¡Mucha suerte! 
+          GanarApp (Edición Global) - Un solo ticket te da acceso a todo: Premio Diario, Gran Acumulado, Sorteo Garantizado y Recompensa al Líder del Ranking. ¡Mucha suerte! 
           <br/><span className="opacity-50 text-[9px]">Aplican Términos y Condiciones.</span>
         </p>
       </div>
