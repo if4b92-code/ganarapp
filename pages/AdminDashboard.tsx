@@ -1,6 +1,6 @@
 
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import { dbService, COLOMBIAN_LOTTERIES } from '../services/dbService'; // <-- UPDATED IMPORT
+import { dbService, COLOMBIAN_LOTTERIES } from '../services/dbService';
 import { Sticker, GlobalSettings } from '../types';
 import { Lock, Save, AlertTriangle, Search, Award, DollarSign, Gift, Users, Key, CheckCircle2, MessageCircle, CreditCard, Wallet, PlusCircle } from 'lucide-react';
 
@@ -18,13 +18,22 @@ export const AdminDashboard: React.FC = () => {
   const [raffleWinner, setRaffleWinner] = useState<Sticker | null>(null);
   const [rafflePrize, setRafflePrize] = useState(0);
 
-  // Simplified states for now
   const [userCodes, setUserCodes] = useState<Record<string, string>>({});
 
   useEffect(() => {
-      // Auto-login on mount if already authenticated in this session
       if (isAuthenticated) {
           loadData();
+
+          const cleanup = dbService.onStickersChange(() => {
+              console.log('Stickers changed, reloading...');
+              loadData();
+          });
+
+          return () => {
+              if (cleanup) {
+                  cleanup();
+              }
+          };
       }
   }, [isAuthenticated]);
 
@@ -90,7 +99,7 @@ export const AdminDashboard: React.FC = () => {
           const { success, message } = await dbService.confirmTicketPayment(sticker.id);
           if (success) {
               alert("✅ Ticket marcado como PAGADO.");
-              await loadData();
+              // No need to call loadData() here, the realtime update will handle it
           } else {
               alert(`❌ Error: ${message}`);
           }
@@ -117,7 +126,6 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleGenerateCode = async (phone: string, name: string) => {
-      // This is now a simplified simulation. Real implementation needs a secure backend process.
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setUserCodes(prev => ({ ...prev, [phone]: code }));
       
@@ -155,12 +163,12 @@ export const AdminDashboard: React.FC = () => {
     );
   }
 
-  if (loading || !settings) {
+  if (loading && stickers.length === 0) { // Show loading only on initial load
       return <div className="flex justify-center mt-20"><div className="animate-spin w-8 h-8 border-4 border-brand-500 rounded-full border-t-transparent"></div></div>;
   }
 
   const activeTickets = stickers.filter(s => s.status === 'active');
-  const totalSales = activeTickets.length * (settings.ticketPrice || 0);
+  const totalSales = activeTickets.length * (settings?.ticketPrice || 0);
 
   return (
     <div className="space-y-6 pb-12">

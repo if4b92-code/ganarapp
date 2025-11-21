@@ -128,6 +128,33 @@ const dbService = {
             .single();
             
         return { data: data as Sticker, error };
+    },
+
+    onStickersChange: (callback: () => void): (() => Promise<"ok" | "timed out" | "error">) | null => {
+        if (!supabase || !isCloudEnabled) return null;
+
+        const channel = supabase.channel('stickers_changes');
+
+        channel
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'stickers' },
+                (payload) => {
+                    console.log('Change received!', payload);
+                    callback();
+                }
+            )
+            .subscribe((status, err) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('Realtime sticker subscription active!');
+                }
+                if (err) {
+                    console.error('Realtime subscription error:', err);
+                }
+            });
+
+        // Return a cleanup function to be called on component unmount
+        return () => supabase.removeChannel(channel);
     }
 };
 
