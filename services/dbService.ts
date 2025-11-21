@@ -28,6 +28,18 @@ const DEFAULT_SETTINGS: GlobalSettings = {
 };
 
 const dbService = {
+    signInAdmin: async (email, password) => {
+        if (!supabase || !isCloudEnabled) return { success: false, message: "Cloud DB not enabled." };
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { success: false, message: error.message };
+        return { success: true, message: "Signed in successfully" };
+    },
+
+    signOutAdmin: async () => {
+        if (!supabase || !isCloudEnabled) return;
+        await supabase.auth.signOut();
+    },
+
     getLotteryForToday: (): string => {
         const day = new Date().getDay();
         const schedule = COLOMBIAN_LOTTERIES.find(s => s.day === day);
@@ -71,7 +83,10 @@ const dbService = {
     getAllStickersGlobal: async (): Promise<Sticker[]> => {
         if (!supabase || !isCloudEnabled) return [];
         const { data, error } = await supabase.from('stickers').select('*').order('created_at', { ascending: false });
-        if (error) return [];
+        if (error) {
+            console.error("Error fetching all stickers:", error);
+            return [];
+        }
         return data as Sticker[];
     },
 
@@ -114,7 +129,6 @@ const dbService = {
     updateStickerOwner: async (stickerId: string, newOwnerData: Partial<OwnerData>): Promise<{ data: Sticker, error: null } | { data: null, error: any }> => {
         if (!supabase || !isCloudEnabled) return { data: null, error: { message: "DB not enabled" } };
 
-        // Get current data first to merge
         const { data: currentSticker, error: fetchError } = await supabase.from('stickers').select('owner_data').eq('id', stickerId).single();
         if (fetchError) return { data: null, error: fetchError };
 
@@ -153,7 +167,6 @@ const dbService = {
                 }
             });
 
-        // Return a cleanup function to be called on component unmount
         return () => supabase.removeChannel(channel);
     }
 };
